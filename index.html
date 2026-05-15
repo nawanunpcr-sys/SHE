@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHE Compliance Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE8;
+    --border: #E2DFD6;
+    --border2: #C8C4BA;
+    --text: #1A1916;
+    --text2: #6B6760;
+    --text3: #A09C95;
+    --accent: #1A4731;
+    --accent-light: #E8F2EC;
+    --accent-mid: #2D7A50;
+    --warn: #8B4513;
+    --warn-light: #FDF0E6;
+    --danger: #8B1A1A;
+    --danger-light: #FDE8E8;
+    --info: #1A3A5C;
+    --info-light: #E8EFF8;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --font: 'IBM Plex Sans Thai', sans-serif;
+    --mono: 'IBM Plex Mono', monospace;
+    --sidebar: 240px;
+    --header: 56px;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: var(--sidebar);
+    min-height: 100vh;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 18px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .logo-icon svg { width: 18px; height: 18px; stroke: white; fill: none; stroke-width: 1.8; }
+
+  .logo-text { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .logo-sub { font-size: 10px; color: var(--text3); font-weight: 400; margin-top: 1px; }
+
+  .nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+
+  .nav-section { margin-bottom: 20px; }
+  .nav-label {
+    font-size: 10px; font-weight: 500; color: var(--text3);
+    letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 0 10px; margin-bottom: 4px;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius);
+    color: var(--text2); cursor: pointer;
+    font-size: 13.5px; font-weight: 400;
+    transition: all 0.12s;
+    border: 1px solid transparent;
+    position: relative;
+  }
+
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active {
+    background: var(--accent-light);
+    color: var(--accent);
+    font-weight: 500;
+    border-color: rgba(26,71,49,0.15);
+  }
+
+  .nav-item svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; flex-shrink: 0; }
+
+  .nav-badge {
+    margin-left: auto;
+    background: var(--danger);
+    color: white;
+    font-size: 10px; font-weight: 500;
+    padding: 1px 6px; border-radius: 999px;
+    min-width: 18px; text-align: center;
+  }
+
+  .nav-badge.warn { background: var(--warn); }
+
+  .sidebar-bottom {
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+  }
+
+  .user-pill {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .user-pill:hover { background: var(--surface2); }
+
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .user-info { flex: 1; min-width: 0; }
+  .user-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .user-role { font-size: 11px; color: var(--text3); }
+
+  /* Main */
+  .main {
+    margin-left: var(--sidebar);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .topbar {
+    height: var(--header);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    position: sticky; top: 0; z-index: 50;
+  }
+
+  .page-title { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-left: 8px; font-weight: 400; }
+
+  .topbar-actions { display: flex; align-items: center; gap: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border2);
+    background: var(--surface); color: var(--text);
+    font-family: var(--font);
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+
+  .btn:hover { background: var(--surface2); }
+  .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .btn-primary {
+    background: var(--accent); color: white;
+    border-color: transparent;
+  }
+
+  .btn-primary:hover { background: var(--accent-mid); }
+
+  .search-box {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px 12px;
+    color: var(--text2); font-family: var(--font); font-size: 13px;
+    width: 220px;
+  }
+
+  .search-box input {
+    border: none; background: transparent; outline: none;
+    font-size: 13px; color: var(--text); font-family: var(--font);
+    width: 100%;
+  }
+
+  .search-box input::placeholder { color: var(--text3); }
+  .search-box svg { width: 14px; height: 14px; stroke: var(--text3); fill: none; flex-shrink: 0; }
+
+  /* Content */
+  .content { padding: 24px; flex: 1; }
+
+  /* Stats row */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+  }
+
+  .stat-label { font-size: 11px; color: var(--text3); font-weight: 500; letter-spacing: 0.3px; margin-bottom: 8px; text-transform: uppercase; }
+  .stat-value { font-size: 28px; font-weight: 300; color: var(--text); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .stat-meta { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .stat-card.green { border-left: 3px solid var(--accent-mid); }
+  .stat-card.amber { border-left: 3px solid #C4820A; }
+  .stat-card.red { border-left: 3px solid var(--danger); }
+  .stat-card.blue { border-left: 3px solid var(--info); }
+
+  .stat-card.green .stat-value { color: var(--accent); }
+  .stat-card.amber .stat-value { color: #7A5200; }
+  .stat-card.red .stat-value { color: var(--danger); }
+  .stat-card.blue .stat-value { color: var(--info); }
+
+  /* Two column layout */
+  .two-col { display: grid; grid-template-columns: 1fr 340px; gap: 16px; }
+
+  /* Section */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  .section-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    gap: 10px;
+  }
+
+  .section-title { font-size: 13.5px; font-weight: 600; color: var(--text); flex: 1; }
+
+  .filter-tabs {
+    display: flex; gap: 2px;
+    background: var(--surface2);
+    padding: 3px; border-radius: 6px;
+  }
+
+  .tab {
+    font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 4px;
+    color: var(--text3); cursor: pointer; transition: all 0.12s;
+  }
+
+  .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+
+  /* Table */
+  .law-table { width: 100%; border-collapse: collapse; }
+  .law-table th {
+    font-size: 11px; font-weight: 500; color: var(--text3);
+    text-align: left; padding: 10px 18px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.3px; text-transform: uppercase;
+  }
+
+  .law-table td { padding: 12px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .law-table tr:last-child td { border-bottom: none; }
+  .law-table tr:hover td { background: var(--surface2); }
+
+  .law-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 2px; }
+  .law-code { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 3px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 500;
+  }
+
+  .badge-green { background: var(--accent-light); color: var(--accent); }
+  .badge-amber { background: var(--warn-light); color: var(--warn); }
+  .badge-red { background: var(--danger-light); color: var(--danger); }
+  .badge-blue { background: var(--info-light); color: var(--info); }
+  .badge-gray { background: var(--surface2); color: var(--text3); }
+
+  .progress-bar {
+    height: 5px; background: var(--surface2);
+    border-radius: 999px; overflow: hidden;
+    margin-top: 4px;
+    width: 80px;
+  }
+
+  .progress-fill { height: 100%; border-radius: 999px; }
+  .fill-green { background: var(--accent-mid); }
+  .fill-amber { background: #C4820A; }
+  .fill-red { background: var(--danger); }
+
+  .dept-tag {
+    display: inline-block;
+    font-size: 10px; color: var(--text3);
+    background: var(--surface2);
+    padding: 2px 7px; border-radius: 4px;
+    margin-right: 3px;
+    border: 1px solid var(--border);
+  }
+
+  .action-btn {
+    padding: 5px 10px;
+    border: 1px solid var(--border2);
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text2);
+    font-size: 11px; font-family: var(--font);
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+
+  .action-btn:hover { background: var(--surface2); color: var(--text); }
+
+  /* Right panel */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* Alert list */
+  .alert-list { padding: 4px 0; }
+  .alert-item {
+    display: flex; gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .alert-item:last-child { border-bottom: none; }
+  .alert-item:hover { background: var(--surface2); }
+
+  .alert-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0; margin-top: 5px;
+  }
+
+  .dot-red { background: var(--danger); }
+  .dot-amber { background: #C4820A; }
+  .dot-green { background: var(--accent-mid); }
+
+  .alert-text { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .alert-time { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* Activity */
+  .activity-list { padding: 4px 0; }
+  .activity-item {
+    display: flex; gap: 12px;
+    padding: 10px 18px;
+  }
+
+  .activity-icon {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .activity-icon svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .ai-green { background: var(--accent-light); color: var(--accent); }
+  .ai-amber { background: var(--warn-light); color: var(--warn); }
+  .ai-blue { background: var(--info-light); color: var(--info); }
+
+  .activity-desc { font-size: 13px; color: var(--text); line-height: 1.4; }
+  .activity-time { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  /* Score gauge */
+  .score-wrap {
+    padding: 20px 18px;
+    text-align: center;
+  }
+
+  .score-ring { position: relative; width: 100px; height: 100px; margin: 0 auto 12px; }
+  .score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+  .ring-fill { fill: none; stroke: var(--accent-mid); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 251; stroke-dashoffset: 38; transition: stroke-dashoffset 0.8s ease; }
+  .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 22px; font-weight: 600; color: var(--text); }
+  .score-label { font-size: 12px; color: var(--text3); margin-bottom: 16px; }
+
+  .score-breakdown { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .sb-item { text-align: center; }
+  .sb-val { font-size: 15px; font-weight: 600; }
+  .sb-lab { font-size: 10px; color: var(--text3); margin-top: 2px; }
+  .c-green { color: var(--accent); }
+  .c-amber { color: #7A5200; }
+  .c-red { color: var(--danger); }
+
+  /* Notification bell */
+  .notif-btn {
+    position: relative; width: 32px; height: 32px;
+    border-radius: var(--radius); border: 1px solid var(--border2);
+    background: var(--surface); display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+
+  .notif-btn svg { width: 15px; height: 15px; stroke: var(--text2); fill: none; stroke-width: 1.8; }
+  .notif-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); border: 1.5px solid var(--surface); }
+
+  /* Empty state */
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--text3);
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 3px 8px; border-radius: 999px;
+  }
+
+  @media (max-width: 1100px) {
+    .two-col { grid-template-columns: 1fr; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── Pages ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── Modal Overlay ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(10,10,8,0.45);
+    align-items: center; justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    width: 760px; max-width: 100%;
+    max-height: 88vh;
+    display: flex; flex-direction: column;
+    animation: modal-in 0.18s ease;
+  }
+
+  @keyframes modal-in {
+    from { opacity:0; transform: translateY(12px) scale(0.98); }
+    to   { opacity:1; transform: none; }
+  }
+
+  .modal-header {
+    padding: 18px 22px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .modal-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--accent-light); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .modal-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+
+  .modal-title { font-size: 15px; font-weight: 600; color: var(--text); }
+  .modal-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .modal-close {
+    margin-left: auto; width: 28px; height: 28px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text3); flex-shrink: 0;
+    transition: all 0.1s;
+  }
+  .modal-close:hover { background: var(--surface2); color: var(--text); }
+  .modal-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+  .modal-body { padding: 20px 22px; overflow-y: auto; flex: 1; }
+  .modal-footer {
+    padding: 14px 22px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+    flex-shrink: 0;
+  }
+
+  /* ── Analyze modal internals ── */
+  .law-input-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .law-input-box label { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 6px; }
+
+  .law-input-box select,
+  .law-input-box textarea {
+    width: 100%; border: 1px solid var(--border2);
+    border-radius: var(--radius); padding: 8px 12px;
+    font-size: 13px; font-family: var(--font);
+    background: var(--surface); color: var(--text);
+    outline: none; resize: none;
+    transition: border-color 0.12s;
+  }
+  .law-input-box select:focus,
+  .law-input-box textarea:focus { border-color: var(--accent-mid); }
+
+  .analyze-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+
+  .analyze-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+
+  .analyze-card-head {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .analyze-card-icon {
+    width: 24px; height: 24px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .analyze-card-icon svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; }
+  .aci-who { background: var(--info-light); color: var(--info); }
+  .aci-what { background: var(--accent-light); color: var(--accent); }
+  .aci-where { background: var(--warn-light); color: var(--warn); }
+  .aci-how { background: #F3EDF8; color: #5C2D8F; }
+
+  .analyze-card-title { font-size: 12px; font-weight: 600; color: var(--text); }
+  .analyze-card-subtitle { font-size: 10px; color: var(--text3); margin-left: auto; }
+
+  .analyze-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px; color: var(--text2);
+  }
+  .analyze-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .analyze-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; margin-top: 5px; }
+  .d-blue { background: var(--info); }
+  .d-green { background: var(--accent-mid); }
+  .d-amber { background: #C4820A; }
+  .d-purple { background: #7C3AED; }
+
+  .ai-loading {
+    display: flex; align-items: center; gap: 10px;
+    padding: 20px; color: var(--text3); font-size: 13px;
+  }
+
+  .spinner {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent-mid);
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .law-meta-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;
+  }
+
+  .meta-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--text3);
+    background: var(--surface2); border: 1px solid var(--border);
+    padding: 4px 10px; border-radius: 999px;
+  }
+  .meta-pill svg { width: 11px; height: 11px; stroke: currentColor; fill: none; }
+  .meta-pill strong { color: var(--text); font-weight: 500; }
+
+  .related-section { margin-top: 16px; }
+  .related-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin-bottom: 8px; }
+  .related-list { display: flex; flex-direction: column; gap: 6px; }
+  .related-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; border-radius: var(--radius);
+    border: 1px solid var(--border); background: var(--bg);
+    font-size: 12.5px; color: var(--text);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .related-item:hover { border-color: var(--border2); background: var(--surface2); }
+
+  /* ── Assessment page ── */
+  .assess-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; }
+
+  .assess-sidebar { display: flex; flex-direction: column; gap: 12px; }
+
+  .law-selector {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+
+  .ls-head {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px; font-weight: 600; color: var(--text);
+  }
+
+  .ls-search {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ls-search svg { width: 13px; height: 13px; stroke: var(--text3); fill: none; flex-shrink: 0; }
+  .ls-search input {
+    border: none; background: transparent; outline: none;
+    font-size: 12px; color: var(--text); font-family: var(--font); width: 100%;
+  }
+  .ls-search input::placeholder { color: var(--text3); }
+
+  .ls-list { max-height: 340px; overflow-y: auto; }
+
+  .ls-item {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .ls-item:last-child { border-bottom: none; }
+  .ls-item:hover { background: var(--surface2); }
+  .ls-item.active { background: var(--accent-light); }
+
+  .ls-name { font-size: 12.5px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+  .ls-item.active .ls-name { color: var(--accent); }
+  .ls-code { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+  .ls-status { margin-top: 4px; }
+
+  .assess-main { display: flex; flex-direction: column; gap: 14px; }
+
+  .assess-header-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 18px 20px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+
+  .assess-law-info { flex: 1; }
+  .assess-law-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .assess-law-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+
+  .score-circle {
+    width: 72px; height: 72px; flex-shrink: 0;
+    position: relative;
+  }
+  .score-circle svg { width: 72px; height: 72px; transform: rotate(-90deg); }
+  .sc-bg { fill: none; stroke: var(--surface2); stroke-width: 6; }
+  .sc-fill { fill: none; stroke-width: 6; stroke-linecap: round; stroke-dasharray: 188; transition: stroke-dashoffset 0.6s ease; }
+  .sc-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 16px; font-weight: 600; }
+
+  .checklist-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+
+  .cl-head {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cl-title { font-size: 13.5px; font-weight: 600; color: var(--text); flex: 1; }
+  .cl-prog { font-size: 12px; color: var(--text3); }
+
+  .cl-progress { height: 3px; background: var(--surface2); }
+  .cl-progress-fill { height: 100%; background: var(--accent-mid); transition: width 0.3s; }
+
+  .cl-section-label {
+    padding: 10px 18px 6px;
+    font-size: 10px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.6px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+
+  .cl-item {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .cl-item:last-child { border-bottom: none; }
+  .cl-item:hover { background: var(--surface2); }
+
+  .cl-check {
+    width: 18px; height: 18px; border-radius: 4px;
+    border: 1.5px solid var(--border2);
+    background: var(--surface); flex-shrink: 0; margin-top: 1px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.12s;
+  }
+  .cl-check.checked { background: var(--accent); border-color: var(--accent); }
+  .cl-check.checked::after { content:''; display:block; width:9px; height:5px; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(1px,-1px); }
+  .cl-check.partial { background: #C4820A; border-color: #C4820A; }
+  .cl-check.partial::after { content:''; display:block; width:8px; height:2px; background: white; border-radius: 1px; }
+
+  .cl-body { flex: 1; }
+  .cl-req { font-size: 13px; color: var(--text); line-height: 1.4; margin-bottom: 4px; }
+  .cl-note { font-size: 11.5px; color: var(--text3); }
+
+  .cl-actions { display: flex; gap: 6px; margin-top: 6px; }
+  .cl-tag {
+    font-size: 10px; padding: 2px 7px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text3);
+  }
+
+  .cl-status-btn {
+    display: flex; gap: 4px; flex-shrink: 0; margin-top: 2px;
+  }
+  .csb {
+    font-size: 10px; padding: 3px 8px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--surface);
+    color: var(--text3); cursor: pointer; font-family: var(--font);
+    transition: all 0.1s;
+  }
+  .csb:hover { background: var(--surface2); }
+  .csb.pass { background: var(--accent-light); color: var(--accent); border-color: rgba(26,71,49,0.2); }
+  .csb.fail { background: var(--danger-light); color: var(--danger); border-color: rgba(139,26,26,0.2); }
+  .csb.na { background: var(--surface2); color: var(--text3); border-color: var(--border2); }
+
+  .evidence-input {
+    margin-top: 8px; padding: 7px 10px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); font-size: 12px; font-family: var(--font);
+    color: var(--text); width: 100%; outline: none; resize: none;
+    transition: border-color 0.12s;
+  }
+  .evidence-input:focus { border-color: var(--accent-mid); }
+
+  .assess-bottom {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .assess-bottom-text { flex: 1; font-size: 13px; color: var(--text2); }
+  .assess-bottom-text strong { color: var(--text); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">SHE Manager</div>
+        <div class="logo-sub">ระบบจัดการกฎหมาย จป.</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-label">ภาพรวม</div>
+      <div class="nav-item active" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        รายงานสรุป
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">กฎหมาย</div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        ทะเบียนกฎหมาย
+        <span class="nav-badge warn">87</span>
+      </div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        ราชกิจจานุเบกษา
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        วิเคราะห์กฎหมาย
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">ความสอดคล้อง</div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        ประเมินความสอดคล้อง
+      </div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        ส่งงานแผนก
+        <span class="nav-badge">5</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">ระบบ</div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        การแจ้งเตือน
+      </div>
+      <div class="nav-item" onclick="setPage(this)">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        ตั้งค่าระบบ
+      </div>
+    </div>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="user-pill">
+      <div class="avatar">นว</div>
+      <div class="user-info">
+        <div class="user-name">นวนุ่น ชาติไทย</div>
+        <div class="user-role">จป. วิชาชีพ · PHKKU</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="topbar">
+    <div>
+      <span class="page-title">Dashboard</span>
+      <span class="page-sub">ภาพรวมความสอดคล้องกฎหมาย</span>
+    </div>
+    <div class="topbar-actions">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="ค้นหากฎหมาย, พรบ. ...">
+      </div>
+      <div class="notif-btn">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </div>
+      <button class="btn btn-primary">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        เพิ่มกฎหมายใหม่
+      </button>
+    </div>
+  </div>
+
+  <!-- PAGE: Dashboard -->
+  <div class="page active" id="page-dashboard">
+  <div class="content">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card green">
+        <div class="stat-label">สอดคล้องแล้ว</div>
+        <div class="stat-value">62</div>
+        <div class="stat-meta">จากทั้งหมด 87 ฉบับ · 71%</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">อยู่ระหว่างดำเนินการ</div>
+        <div class="stat-value">18</div>
+        <div class="stat-meta">ครบกำหนดใน 30 วัน</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-label">ยังไม่สอดคล้อง</div>
+        <div class="stat-value">7</div>
+        <div class="stat-meta">ต้องดำเนินการเร่งด่วน</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">กฎหมายใหม่</div>
+        <div class="stat-value">3</div>
+        <div class="stat-meta">จากราชกิจจาฯ สัปดาห์นี้</div>
+      </div>
+    </div>
+
+    <!-- Two column -->
+    <div class="two-col">
+
+      <!-- Law table -->
+      <div>
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">ทะเบียนกฎหมายล่าสุด</div>
+            <div class="filter-tabs">
+              <div class="tab active">ทั้งหมด</div>
+              <div class="tab" onclick="switchTab(this, event)">ด่วน</div>
+              <div class="tab" onclick="switchTab(this, event)">ใหม่</div>
+            </div>
+            <button class="btn" style="margin-left:8px; padding:5px 10px; font-size:12px;">
+              <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              ตัวกรอง
+            </button>
+          </div>
+
+          <table class="law-table">
+            <thead>
+              <tr>
+                <th>กฎหมาย / พรบ.</th>
+                <th>หมวด</th>
+                <th>ความสอดคล้อง</th>
+                <th>แผนก</th>
+                <th>สถานะ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="law-name">พรบ. ความปลอดภัย อาชีวอนามัย ฯ 2554</div>
+                  <div class="law-code">OSH-2554-001</div>
+                </td>
+                <td><span class="badge badge-blue">ความปลอดภัย</span></td>
+                <td>
+                  <div style="font-size:13px;font-weight:500;color:var(--accent)">92%</div>
+                  <div class="progress-bar"><div class="progress-fill fill-green" style="width:92%"></div></div>
+                </td>
+                <td>
+                  <span class="dept-tag">HR</span>
+                  <span class="dept-tag">ผลิต</span>
+                </td>
+                <td><span class="badge badge-green">✓ สอดคล้อง</span></td>
+                <td><button class="action-btn">ดูรายละเอียด</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="law-name">กฎกระทรวง ว่าด้วยการจัดสวัสดิการ 2563</div>
+                  <div class="law-code">WEL-2563-004</div>
+                </td>
+                <td><span class="badge badge-amber">สวัสดิการ</span></td>
+                <td>
+                  <div style="font-size:13px;font-weight:500;color:#7A5200">67%</div>
+                  <div class="progress-bar"><div class="progress-fill fill-amber" style="width:67%"></div></div>
+                </td>
+                <td>
+                  <span class="dept-tag">HR</span>
+                  <span class="dept-tag">การเงิน</span>
+                </td>
+                <td><span class="badge badge-amber">⏳ กำลังดำเนินการ</span></td>
+                <td><button class="action-btn">ดูรายละเอียด</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="law-name">พรบ. ควบคุมมลพิษ 2535 (แก้ไข 2566)</div>
+                  <div class="law-code">ENV-2535-012</div>
+                </td>
+                <td><span class="badge badge-green">สิ่งแวดล้อม</span></td>
+                <td>
+                  <div style="font-size:13px;font-weight:500;color:var(--danger)">31%</div>
+                  <div class="progress-bar"><div class="progress-fill fill-red" style="width:31%"></div></div>
+                </td>
+                <td>
+                  <span class="dept-tag">สิ่งแวดล้อม</span>
+                </td>
+                <td><span class="badge badge-red">✕ ยังไม่สอดคล้อง</span></td>
+                <td><button class="action-btn">ดูรายละเอียด</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="law-name">ประกาศกระทรวง เรื่อง PPE ในสถานประกอบการ</div>
+                  <div class="law-code">PPE-2565-008</div>
+                </td>
+                <td><span class="badge badge-blue">ความปลอดภัย</span></td>
+                <td>
+                  <div style="font-size:13px;font-weight:500;color:var(--accent)">100%</div>
+                  <div class="progress-bar"><div class="progress-fill fill-green" style="width:100%"></div></div>
+                </td>
+                <td>
+                  <span class="dept-tag">ผลิต</span>
+                  <span class="dept-tag">คลัง</span>
+                </td>
+                <td><span class="badge badge-green">✓ สอดคล้อง</span></td>
+                <td><button class="action-btn">ดูรายละเอียด</button></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="law-name">กฎกระทรวง สุขภาพอนามัยแรงงาน 2564</div>
+                  <div class="law-code">HLT-2564-002</div>
+                </td>
+                <td><span class="badge badge-gray">อาชีวอนามัย</span></td>
+                <td>
+                  <div style="font-size:13px;font-weight:500;color:#7A5200">55%</div>
+                  <div class="progress-bar"><div class="progress-fill fill-amber" style="width:55%"></div></div>
+                </td>
+                <td>
+                  <span class="dept-tag">HR</span>
+                </td>
+                <td><span class="badge badge-amber">⏳ กำลังดำเนินการ</span></td>
+                <td><button class="action-btn">ดูรายละเอียด</button></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="padding:12px 18px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+            <span style="font-size:12px; color:var(--text3)">แสดง 5 จาก 87 รายการ</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn" style="padding:5px 10px; font-size:12px;">← ก่อนหน้า</button>
+              <button class="btn" style="padding:5px 10px; font-size:12px; background:var(--surface2)">1</button>
+              <button class="btn" style="padding:5px 10px; font-size:12px;">2</button>
+              <button class="btn" style="padding:5px 10px; font-size:12px;">3</button>
+              <button class="btn" style="padding:5px 10px; font-size:12px;">ถัดไป →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="right-panel">
+
+        <!-- Compliance score -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">คะแนนความสอดคล้อง</div>
+            <span class="chip">ปี 2567</span>
+          </div>
+          <div class="score-wrap">
+            <div class="score-ring">
+              <svg viewBox="0 0 100 100">
+                <circle class="ring-bg" cx="50" cy="50" r="40"/>
+                <circle class="ring-fill" cx="50" cy="50" r="40"/>
+              </svg>
+              <div class="score-num">85</div>
+            </div>
+            <div class="score-label">คะแนนเฉลี่ยองค์กร</div>
+            <div class="score-breakdown">
+              <div class="sb-item">
+                <div class="sb-val c-green">62</div>
+                <div class="sb-lab">สอดคล้อง</div>
+              </div>
+              <div class="sb-item">
+                <div class="sb-val c-amber">18</div>
+                <div class="sb-lab">กำลังดำเนินการ</div>
+              </div>
+              <div class="sb-item">
+                <div class="sb-val c-red">7</div>
+                <div class="sb-lab">ไม่สอดคล้อง</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alerts -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">การแจ้งเตือน</div>
+            <span class="badge badge-red" style="font-size:10px;">3 ด่วน</span>
+          </div>
+          <div class="alert-list">
+            <div class="alert-item">
+              <div class="alert-dot dot-red"></div>
+              <div>
+                <div class="alert-text">พรบ. ควบคุมมลพิษ ครบกำหนดรายงาน</div>
+                <div class="alert-time">วันนี้ · ต้องดำเนินการก่อน 17:00 น.</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-red"></div>
+              <div>
+                <div class="alert-text">กฎกระทรวงสุขภาพฯ ยังขาดเอกสาร 3 รายการ</div>
+                <div class="alert-time">2 วันที่แล้ว · กำหนดส่ง 15 มิ.ย.</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-amber"></div>
+              <div>
+                <div class="alert-text">ราชกิจจาฯ ออกกฎใหม่เรื่อง สารเคมี</div>
+                <div class="alert-time">3 วันที่แล้ว · รอวิเคราะห์</div>
+              </div>
+            </div>
+            <div class="alert-item">
+              <div class="alert-dot dot-green"></div>
+              <div>
+                <div class="alert-text">PPE กฎกระทรวง ผ่านการประเมินแล้ว</div>
+                <div class="alert-time">เมื่อวาน · เสร็จสมบูรณ์</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title">กิจกรรมล่าสุด</div>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon ai-green">
+                <svg viewBox="0 0 24 24"><polyline points="20,6 9,17 4,12"/></svg>
+              </div>
+              <div>
+                <div class="activity-desc">อัปเดตสถานะ OSH-2554 → สอดคล้อง</div>
+                <div class="activity-time">10 นาทีที่แล้ว · นวนุ่น ชาติไทย</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon ai-blue">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <div>
+                <div class="activity-desc">นำเข้าจากราชกิจจาฯ 3 ฉบับใหม่</div>
+                <div class="activity-time">1 ชั่วโมงที่แล้ว · ระบบอัตโนมัติ</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon ai-amber">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              </div>
+              <div>
+                <div class="activity-desc">ส่งงานแผนก HR เรื่อง WEL-2563</div>
+                <div class="activity-time">เมื่อวาน 14:30 · สมชาย ดีงาม</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  </div><!-- /page-dashboard -->
+
+  <!-- PAGE: วิเคราะห์กฎหมาย -->
+  <div class="page" id="page-analyze">
+    <div class="content">
+      <div class="section" style="max-width:820px">
+        <div class="section-head">
+          <div class="modal-icon" style="margin-right:4px">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </div>
+          <div class="section-title">วิเคราะห์กฎหมาย — ใคร / ทำอะไร / ที่ไหน / อย่างไร</div>
+        </div>
+        <div style="padding:20px">
+          <div class="law-meta-row">
+            <span class="meta-pill">
+              <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+              <strong>พรบ. ความปลอดภัย อาชีวอนามัย ฯ 2554</strong>
+            </span>
+            <span class="meta-pill">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <strong>ประกาศ: 12 มิ.ย. 2554</strong>
+            </span>
+            <span class="meta-pill">
+              <svg viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              <strong>OSH-2554-001</strong>
+            </span>
+            <span class="badge badge-blue" style="font-size:11px">ความปลอดภัย</span>
+          </div>
+
+          <div class="law-input-box" style="margin-bottom:16px">
+            <label>เลือกมาตรา / ข้อที่ต้องการวิเคราะห์</label>
+            <select>
+              <option>มาตรา 8 — หน้าที่นายจ้างจัดให้สถานที่ปลอดภัย</option>
+              <option>มาตรา 13 — การฝึกอบรมด้านความปลอดภัย</option>
+              <option>มาตรา 16 — คณะกรรมการความปลอดภัย (คปอ.)</option>
+              <option>มาตรา 22 — การรายงานอุบัติเหตุ</option>
+              <option>มาตรา 32 — เจ้าหน้าที่ความปลอดภัย (จป.)</option>
+            </select>
+          </div>
+
+          <!-- 4-quadrant analyze grid -->
+          <div class="analyze-grid">
+            <!-- ใคร -->
+            <div class="analyze-card">
+              <div class="analyze-card-head">
+                <div class="analyze-card-icon aci-who">
+                  <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                </div>
+                <div class="analyze-card-title">ใคร (Who)</div>
+                <div class="analyze-card-subtitle">ผู้มีหน้าที่</div>
+              </div>
+              <div class="analyze-item"><span class="analyze-dot d-blue"></span>นายจ้างที่มีลูกจ้าง 1 คนขึ้นไป</div>
+              <div class="analyze-item"><span class="analyze-dot d-blue"></span>เจ้าหน้าที่ความปลอดภัย (จป.) ทุกระดับ</div>
+              <div class="analyze-item"><span class="analyze-dot d-blue"></span>คณะกรรมการ คปอ. ในสถานประกอบการ ≥ 50 คน</div>
+              <div class="analyze-item"><span class="analyze-dot d-blue"></span>หัวหน้างานทุกแผนก</div>
+            </div>
+
+            <!-- ทำอะไร -->
+            <div class="analyze-card">
+              <div class="analyze-card-head">
+                <div class="analyze-card-icon aci-what">
+                  <svg viewBox="0 0 24 24"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <div class="analyze-card-title">ทำอะไร (What)</div>
+                <div class="analyze-card-subtitle">ข้อกำหนด</div>
+              </div>
+              <div class="analyze-item"><span class="analyze-dot d-green"></span>จัดทำนโยบายความปลอดภัยเป็นลายลักษณ์อักษร</div>
+              <div class="analyze-item"><span class="analyze-dot d-green"></span>ฝึกอบรมพนักงานก่อนเริ่มงาน และทบทวนรายปี</div>
+              <div class="analyze-item"><span class="analyze-dot d-green"></span>ประชุม คปอ. อย่างน้อยเดือนละ 1 ครั้ง</div>
+              <div class="analyze-item"><span class="analyze-dot d-green"></span>รายงานอุบัติเหตุภายใน 24 ชั่วโมง</div>
+            </div>
+
+            <!-- ที่ไหน -->
+            <div class="analyze-card">
+              <div class="analyze-card-head">
+                <div class="analyze-card-icon aci-where">
+                  <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                </div>
+                <div class="analyze-card-title">ที่ไหน (Where)</div>
+                <div class="analyze-card-subtitle">ขอบเขต</div>
+              </div>
+              <div class="analyze-item"><span class="analyze-dot d-amber"></span>สถานประกอบการทุกประเภทในราชอาณาจักร</div>
+              <div class="analyze-item"><span class="analyze-dot d-amber"></span>พื้นที่ที่นายจ้างกำหนดให้ลูกจ้างทำงาน</div>
+              <div class="analyze-item"><span class="analyze-dot d-amber"></span>รวมถึงงานนอกสถานที่ (Site work)</div>
+            </div>
+
+            <!-- อย่างไร -->
+            <div class="analyze-card">
+              <div class="analyze-card-head">
+                <div class="analyze-card-icon aci-how">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="analyze-card-title">อย่างไร (How)</div>
+                <div class="analyze-card-subtitle">วิธีดำเนินการ</div>
+              </div>
+              <div class="analyze-item"><span class="analyze-dot d-purple"></span>จัดทำเอกสารตามแบบฟอร์ม กสร. กำหนด</div>
+              <div class="analyze-item"><span class="analyze-dot d-purple"></span>บันทึกการฝึกอบรมพร้อมลายมือชื่อผู้เข้าร่วม</div>
+              <div class="analyze-item"><span class="analyze-dot d-purple"></span>รายงานต่อพนักงานตรวจแรงงาน</div>
+              <div class="analyze-item"><span class="analyze-dot d-purple"></span>โทษปรับไม่เกิน 200,000 บาท หากฝ่าฝืน</div>
+            </div>
+          </div>
+
+          <div class="related-section">
+            <div class="related-label">กฎหมายที่เกี่ยวข้อง</div>
+            <div class="related-list">
+              <div class="related-item" onclick="openAnalyzeModal()">
+                <span class="badge badge-blue" style="font-size:10px;flex-shrink:0">กฎกระทรวง</span>
+                <span style="font-size:13px">กฎกระทรวงว่าด้วยการจัดให้มี จป. วิชาชีพ พ.ศ. 2565</span>
+                <span style="margin-left:auto;font-size:11px;color:var(--text3)">ดูรายละเอียด →</span>
+              </div>
+              <div class="related-item" onclick="openAnalyzeModal()">
+                <span class="badge badge-gray" style="font-size:10px;flex-shrink:0">ประกาศ</span>
+                <span style="font-size:13px">ประกาศกรมสวัสดิการ เรื่อง มาตรฐานการฝึกอบรม 2566</span>
+                <span style="margin-left:auto;font-size:11px;color:var(--text3)">ดูรายละเอียด →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="border-top:1px solid var(--border);margin-top:0">
+          <button class="btn">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            ส่งออก PDF
+          </button>
+          <button class="btn" onclick="goAssess()">
+            ประเมินความสอดคล้อง →
+          </button>
+          <button class="btn btn-primary">
+            <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:white;fill:none;stroke-width:2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            ส่งงานแผนก
+          </button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-analyze -->
+
+  <!-- PAGE: ประเมินความสอดคล้อง -->
+  <div class="page" id="page-assess">
+    <div class="content">
+      <div class="assess-layout">
+
+        <!-- Law selector -->
+        <div class="assess-sidebar">
+          <div class="law-selector">
+            <div class="ls-head">เลือกกฎหมาย</div>
+            <div class="ls-search">
+              <svg viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="ค้นหา...">
+            </div>
+            <div class="ls-list">
+              <div class="ls-item active" onclick="selectLaw(this)">
+                <div class="ls-name">พรบ. ความปลอดภัย อาชีวอนามัย ฯ 2554</div>
+                <div class="ls-code">OSH-2554-001</div>
+                <div class="ls-status"><span class="badge badge-amber" style="font-size:10px">67% สอดคล้อง</span></div>
+              </div>
+              <div class="ls-item" onclick="selectLaw(this)">
+                <div class="ls-name">กฎกระทรวง ว่าด้วยสวัสดิการ 2563</div>
+                <div class="ls-code">WEL-2563-004</div>
+                <div class="ls-status"><span class="badge badge-amber" style="font-size:10px">55% สอดคล้อง</span></div>
+              </div>
+              <div class="ls-item" onclick="selectLaw(this)">
+                <div class="ls-name">พรบ. ควบคุมมลพิษ 2535</div>
+                <div class="ls-code">ENV-2535-012</div>
+                <div class="ls-status"><span class="badge badge-red" style="font-size:10px">31% สอดคล้อง</span></div>
+              </div>
+              <div class="ls-item" onclick="selectLaw(this)">
+                <div class="ls-name">ประกาศ PPE ในสถานประกอบการ</div>
+                <div class="ls-code">PPE-2565-008</div>
+                <div class="ls-status"><span class="badge badge-green" style="font-size:10px">100% สอดคล้อง</span></div>
+              </div>
+              <div class="ls-item" onclick="selectLaw(this)">
+                <div class="ls-name">กฎกระทรวง สุขภาพอนามัย 2564</div>
+                <div class="ls-code">HLT-2564-002</div>
+                <div class="ls-status"><span class="badge badge-amber" style="font-size:10px">55% สอดคล้อง</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="section" style="padding:14px 16px">
+            <div style="font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">ความคืบหน้า</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>ผ่าน</span><span style="color:var(--accent);font-weight:500">8 / 12</span></div>
+                <div class="progress-bar" style="width:100%"><div class="progress-fill fill-green" style="width:67%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>ไม่ผ่าน</span><span style="color:var(--danger);font-weight:500">2 / 12</span></div>
+                <div class="progress-bar" style="width:100%"><div class="progress-fill fill-red" style="width:17%"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:4px"><span>ยังไม่ประเมิน</span><span style="color:var(--text3);font-weight:500">2 / 12</span></div>
+                <div class="progress-bar" style="width:100%"><div class="progress-fill" style="width:17%;background:var(--border2)"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Checklist main -->
+        <div class="assess-main">
+
+          <!-- Header -->
+          <div class="assess-header-card">
+            <div class="assess-law-info">
+              <div class="assess-law-name">พรบ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. 2554</div>
+              <div class="assess-law-meta">
+                <span class="meta-pill">
+                  <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  ครบกำหนด <strong>30 มิ.ย. 2567</strong>
+                </span>
+                <span class="meta-pill">
+                  <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                  ผู้รับผิดชอบ <strong>นวนุ่น ชาติไทย</strong>
+                </span>
+                <span class="badge badge-amber">⏳ กำลังดำเนินการ</span>
+              </div>
+            </div>
+            <div class="score-circle" id="assess-score-wrap">
+              <svg viewBox="0 0 72 72">
+                <circle class="sc-bg" cx="36" cy="36" r="30"/>
+                <circle class="sc-fill" cx="36" cy="36" r="30" id="assess-ring" style="stroke:var(--accent-mid);stroke-dashoffset:62"/>
+              </svg>
+              <div class="sc-text" id="assess-pct" style="color:var(--accent)">67%</div>
+            </div>
+          </div>
+
+          <!-- Checklist -->
+          <div class="checklist-card">
+            <div class="cl-head">
+              <div class="cl-title">รายการตรวจประเมิน</div>
+              <div class="cl-prog" id="cl-counter">8 / 12 รายการ</div>
+            </div>
+            <div class="cl-progress"><div class="cl-progress-fill" id="cl-bar" style="width:67%"></div></div>
+
+            <div class="cl-section-label">หมวด 1 — นโยบายและการจัดการ</div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">นายจ้างจัดทำนโยบายความปลอดภัยเป็นลายลักษณ์อักษร และประกาศให้พนักงานทราบ</div>
+                <div class="cl-note">มาตรา 8 วรรค 1</div>
+                <div class="cl-actions"><span class="cl-tag">เอกสาร</span><span class="cl-tag">ประกาศ</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">มีการแต่งตั้ง จป. วิชาชีพ อย่างน้อย 1 คน ในกรณีที่มีลูกจ้าง 50 คนขึ้นไป</div>
+                <div class="cl-note">มาตรา 32 วรรค 2</div>
+                <div class="cl-actions"><span class="cl-tag">HR</span><span class="cl-tag">คำสั่งแต่งตั้ง</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-item">
+              <div class="cl-check partial" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">จัดตั้งคณะกรรมการความปลอดภัย (คปอ.) และมีการประชุมอย่างน้อยเดือนละ 1 ครั้ง</div>
+                <div class="cl-note">มาตรา 16 — ประชุมครบ แต่ขาดรายงานการประชุม 2 เดือน</div>
+                <div class="cl-actions"><span class="cl-tag">คปอ.</span><span class="cl-tag">รายงาน</span></div>
+                <textarea class="evidence-input" rows="2" placeholder="บันทึกหลักฐาน / ข้อสังเกต...">มีรายงานการประชุม ม.ค.–มี.ค. แต่ขาด เม.ย.–พ.ค. 67</textarea>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb fail" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-section-label">หมวด 2 — การฝึกอบรม</div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">จัดการฝึกอบรมด้านความปลอดภัยให้พนักงานใหม่ก่อนเริ่มงาน</div>
+                <div class="cl-note">มาตรา 13</div>
+                <div class="cl-actions"><span class="cl-tag">Training</span><span class="cl-tag">ลงนาม</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">ทบทวนการฝึกอบรมด้านความปลอดภัยทั่วไปอย่างน้อยปีละ 1 ครั้ง</div>
+                <div class="cl-note">มาตรา 13 วรรค 3</div>
+                <div class="cl-actions"><span class="cl-tag">Training</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-section-label">หมวด 3 — สิ่งแวดล้อมการทำงาน</div>
+
+            <div class="cl-item">
+              <div class="cl-check" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">ตรวจวัดระดับเสียงในสถานที่ทำงานที่มีเสียงดังอย่างน้อยปีละ 1 ครั้ง</div>
+                <div class="cl-note">มาตรา 23 — ยังไม่ได้ดำเนินการปี 2567</div>
+                <div class="cl-actions"><span class="cl-tag">สิ่งแวดล้อม</span><span class="cl-tag">ตรวจวัด</span></div>
+                <textarea class="evidence-input" rows="2" placeholder="บันทึกหลักฐาน / ข้อสังเกต..."></textarea>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb fail" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">จัดให้มี PPE ที่เหมาะสมและเพียงพอสำหรับงานที่มีความเสี่ยง</div>
+                <div class="cl-note">มาตรา 20</div>
+                <div class="cl-actions"><span class="cl-tag">PPE</span><span class="cl-tag">ทะเบียน</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+            <div class="cl-section-label">หมวด 4 — การรายงานและสอบสวน</div>
+
+            <div class="cl-item">
+              <div class="cl-check checked" onclick="toggleCheck(this)"></div>
+              <div class="cl-body">
+                <div class="cl-req">รายงานอุบัติเหตุที่ทำให้หยุดงานเกิน 3 วัน ต่อพนักงานตรวจแรงงานภายใน 15 วัน</div>
+                <div class="cl-note">มาตรา 22 วรรค 1</div>
+                <div class="cl-actions"><span class="cl-tag">กสร.</span><span class="cl-tag">รายงาน</span></div>
+              </div>
+              <div class="cl-status-btn">
+                <button class="csb pass" onclick="setStatus(this,'pass')">ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'fail')">ไม่ผ่าน</button>
+                <button class="csb" onclick="setStatus(this,'na')">N/A</button>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="assess-bottom">
+            <div class="assess-bottom-text">บันทึกล่าสุด: <strong>วันนี้ 10:42 น.</strong> · ประเมินโดย <strong>นวนุ่น ชาติไทย</strong></div>
+            <button class="btn">
+              <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              ส่งออกรายงาน
+            </button>
+            <button class="btn">บันทึกร่าง</button>
+            <button class="btn btn-primary">ยืนยันผลการประเมิน ✓</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-assess -->
+
+</main>
+
+<!-- Modal: วิเคราะห์กฎหมาย (popup from dashboard) -->
+<div class="modal-overlay" id="modal-analyze" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      </div>
+      <div>
+        <div class="modal-title">วิเคราะห์กฎหมาย</div>
+        <div class="modal-sub">พรบ. ความปลอดภัย อาชีวอนามัย ฯ 2554 · OSH-2554-001</div>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('modal-analyze').classList.remove('open')">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="law-meta-row">
+        <span class="badge badge-blue">ความปลอดภัย</span>
+        <span class="meta-pill"><strong>ประกาศ:</strong> 12 มิ.ย. 2554</span>
+        <span class="meta-pill"><strong>มีผลบังคับ:</strong> 16 ก.ค. 2554</span>
+      </div>
+
+      <div class="law-input-box">
+        <label>เลือกมาตราที่ต้องการวิเคราะห์</label>
+        <select onchange="showLoading()">
+          <option>มาตรา 8 — หน้าที่นายจ้างจัดให้สถานที่ปลอดภัย</option>
+          <option>มาตรา 13 — การฝึกอบรมด้านความปลอดภัย</option>
+          <option>มาตรา 16 — คณะกรรมการความปลอดภัย (คปอ.)</option>
+          <option>มาตรา 22 — การรายงานอุบัติเหตุ</option>
+        </select>
+      </div>
+
+      <div id="modal-loading" class="ai-loading" style="display:none">
+        <div class="spinner"></div>
+        กำลังวิเคราะห์...
+      </div>
+
+      <div id="modal-result">
+        <div class="analyze-grid" style="margin-bottom:0">
+          <div class="analyze-card">
+            <div class="analyze-card-head">
+              <div class="analyze-card-icon aci-who"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+              <div class="analyze-card-title">ใคร (Who)</div>
+            </div>
+            <div class="analyze-item"><span class="analyze-dot d-blue"></span>นายจ้างที่มีลูกจ้าง 1 คนขึ้นไป</div>
+            <div class="analyze-item"><span class="analyze-dot d-blue"></span>เจ้าหน้าที่ความปลอดภัย (จป.)</div>
+            <div class="analyze-item"><span class="analyze-dot d-blue"></span>หัวหน้างานทุกแผนก</div>
+          </div>
+          <div class="analyze-card">
+            <div class="analyze-card-head">
+              <div class="analyze-card-icon aci-what"><svg viewBox="0 0 24 24"><polyline points="9,11 12,14 22,4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div>
+              <div class="analyze-card-title">ทำอะไร (What)</div>
+            </div>
+            <div class="analyze-item"><span class="analyze-dot d-green"></span>จัดทำนโยบายความปลอดภัยเป็นลายลักษณ์อักษร</div>
+            <div class="analyze-item"><span class="analyze-dot d-green"></span>ฝึกอบรมพนักงานก่อนเริ่มงานและรายปี</div>
+            <div class="analyze-item"><span class="analyze-dot d-green"></span>รายงานอุบัติเหตุภายใน 24 ชั่วโมง</div>
+          </div>
+          <div class="analyze-card">
+            <div class="analyze-card-head">
+              <div class="analyze-card-icon aci-where"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <div class="analyze-card-title">ที่ไหน (Where)</div>
+            </div>
+            <div class="analyze-item"><span class="analyze-dot d-amber"></span>สถานประกอบการทุกประเภทในราชอาณาจักร</div>
+            <div class="analyze-item"><span class="analyze-dot d-amber"></span>รวมถึงงานนอกสถานที่ (Site work)</div>
+          </div>
+          <div class="analyze-card">
+            <div class="analyze-card-head">
+              <div class="analyze-card-icon aci-how"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+              <div class="analyze-card-title">อย่างไร (How)</div>
+            </div>
+            <div class="analyze-item"><span class="analyze-dot d-purple"></span>จัดทำเอกสารตามแบบฟอร์ม กสร. กำหนด</div>
+            <div class="analyze-item"><span class="analyze-dot d-purple"></span>โทษปรับไม่เกิน 200,000 บาท หากฝ่าฝืน</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="document.getElementById('modal-analyze').classList.remove('open')">ปิด</button>
+      <button class="btn" onclick="document.getElementById('modal-analyze').classList.remove('open'); goAssess()">ประเมินความสอดคล้อง →</button>
+      <button class="btn btn-primary">บันทึกการวิเคราะห์</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Page routing
+  const pages = {
+    'dashboard': 'page-dashboard',
+    'dashboard2': 'page-dashboard',
+    'รายงานสรุป': 'page-dashboard',
+    'ทะเบียนกฎหมาย': 'page-dashboard',
+    'ราชกิจจานุเบกษา': 'page-dashboard',
+    'วิเคราะห์กฎหมาย': 'page-analyze',
+    'ประเมินความสอดคล้อง': 'page-assess',
+    'ส่งงานแผนก': 'page-assess',
+    'การแจ้งเตือน': 'page-dashboard',
+    'ตั้งค่าระบบ': 'page-dashboard',
+  };
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById(id);
+    if (el) el.classList.add('active');
+  }
+
+  function setPage(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const rawText = el.innerText.trim().split('\n')[0].trim();
+    const lower = rawText.toLowerCase();
+    const pageId = pages[rawText] || pages[lower] || 'page-dashboard';
+    document.querySelector('.page-title').innerText = rawText;
+    showPage(pageId);
+    animateRing();
+  }
+
+  function goAssess() {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => {
+      if (n.innerText.includes('ประเมินความสอดคล้อง')) n.classList.add('active');
+    });
+    document.querySelector('.page-title').innerText = 'ประเมินความสอดคล้อง';
+    showPage('page-assess');
+  }
+
+  // "ดูรายละเอียด" buttons on table
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => openAnalyzeModal());
+  });
+
+  function openAnalyzeModal() {
+    document.getElementById('modal-analyze').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === e.currentTarget)
+      e.currentTarget.classList.remove('open');
+  }
+
+  function showLoading() {
+    document.getElementById('modal-loading').style.display = 'flex';
+    document.getElementById('modal-result').style.display = 'none';
+    setTimeout(() => {
+      document.getElementById('modal-loading').style.display = 'none';
+      document.getElementById('modal-result').style.display = 'block';
+    }, 1200);
+  }
+
+  function switchTab(el, e) {
+    e.stopPropagation();
+    el.closest('.filter-tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function selectLaw(el) {
+    document.querySelectorAll('.ls-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Checklist logic
+  let passCount = 8, totalCount = 12;
+
+  function updateProgress() {
+    const pct = Math.round((passCount / totalCount) * 100);
+    document.getElementById('cl-bar').style.width = pct + '%';
+    document.getElementById('cl-counter').innerText = passCount + ' / ' + totalCount + ' รายการ';
+    document.getElementById('assess-pct').innerText = pct + '%';
+    const offset = 188 - (188 * pct / 100);
+    document.getElementById('assess-ring').style.strokeDashoffset = offset;
+    const ring = document.getElementById('assess-ring');
+    if (pct >= 80) ring.style.stroke = 'var(--accent-mid)';
+    else if (pct >= 50) ring.style.stroke = '#C4820A';
+    else ring.style.stroke = 'var(--danger)';
+  }
+
+  function toggleCheck(el) {
+    const was = el.classList.contains('checked') || el.classList.contains('partial');
+    el.className = 'cl-check' + (was ? '' : ' checked');
+    if (!was) passCount = Math.min(totalCount, passCount + 1);
+    else passCount = Math.max(0, passCount - 1);
+    updateProgress();
+  }
+
+  function setStatus(btn, status) {
+    const group = btn.closest('.cl-status-btn');
+    group.querySelectorAll('.csb').forEach(b => b.className = 'csb');
+    btn.classList.add(status);
+    const check = btn.closest('.cl-item').querySelector('.cl-check');
+    if (status === 'pass') { check.className = 'cl-check checked'; }
+    else if (status === 'fail') { check.className = 'cl-check'; }
+    else { check.className = 'cl-check na'; }
+    updateProgress();
+  }
+
+  function animateRing() {
+    const fill = document.querySelector('.ring-fill');
+    if (fill) {
+      fill.style.strokeDashoffset = '251';
+      setTimeout(() => { fill.style.strokeDashoffset = '38'; }, 100);
+    }
+  }
+
+  window.addEventListener('load', () => {
+    animateRing();
+    updateProgress();
+  });
+</script>
+</body>
+</html>
